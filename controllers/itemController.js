@@ -90,6 +90,22 @@ class ItemController {
         }
     }
 
+    async buyItems(req, res, next) {
+        try {
+            const { id, count } = req.body
+            const item = await Item.findOne({ where: { id } })
+            if (item.count - count > 0) {
+                item.count -= count
+            } else {
+                item.count = 0
+            }
+            await item.save()
+            return res.json(item)
+        } catch (e) {
+            return next(ApiError.badRequest(e.message))
+        }
+    }
+
     async getOne(req, res, next) {
         try {
             const { id } = req.params
