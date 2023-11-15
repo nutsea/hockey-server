@@ -1,5 +1,5 @@
 const { Item, Image } = require('../models/models')
-const ApiError = require('../error/apiError')
+const ApiError = require('../error/ApiError')
 const uuid = require('uuid')
 const path = require('path')
 const { Op } = require('sequelize')
