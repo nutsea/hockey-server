@@ -13,7 +13,7 @@ const Item = sequelize.define('item', {
     rigidity: {type: DataTypes.INTEGER, allowNull: false},
     type: {type: DataTypes.STRING, allowNull: false},
     count: {type: DataTypes.INTEGER, allowNull: true},
-    restore: {type: DataTypes.STRING, allowNull: true},
+    renew: {type: DataTypes.STRING, allowNull: true},
     img: {type: DataTypes.STRING, allowNull: true}
 })
 

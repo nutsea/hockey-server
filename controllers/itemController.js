@@ -9,17 +9,22 @@ const { Op } = require('sequelize');
 class ItemController {
     async create(req, res, next) {
         try {
-            const { code, brand, name, description, price, grip, bend, rigidity, type, count, restore } = req.body
+            const { code, brand, name, description, price, grip, bend, rigidity, type, count, renew } = req.body
             if (req.files && 'img' in req.files) {
                 console.log('1')
                 const { img } = req.files
                 let fileName = uuid.v4() + ".jpg"
                 img.mv(path.resolve(__dirname, '..', 'static', fileName))
-                const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, restore, img: fileName })
+                const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, renew, img: fileName })
                 return res.json(item)
             } else {
-                const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, restore })
-                return res.json(item)
+                if (count) {
+                    const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, renew })
+                    return res.json(item)
+                } else {
+                    const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count: 1, renew })
+                    return res.json(item)
+                }
             }
         } catch (e) {
             return next(ApiError.badRequest(e.message))
@@ -42,13 +47,6 @@ class ItemController {
                 }
                 return res.json(code)
             }
-            // for (let i of grips) {
-            //     for (let j of bends) {
-            //         for (let k of rigidities) {
-            //             const item = await Item.create({ code, brand, name, description, price, grip: i, bend: j, rigidity: k, type })
-            //         }
-            //     }
-            // }
             return res.json(code)
         } catch (e) {
             return next(ApiError.badRequest(e.message))
@@ -57,8 +55,8 @@ class ItemController {
 
     async update(req, res, next) {
         try {
-            const { id, code, brand, name, description, price, grip, bend, rigidity, count, restore } = req.body
-            const item = await Item.findOne({ where: id })
+            const { id, code, brand, name, description, price, grip, bend, rigidity, count, renew } = req.body
+            const item = await Item.findOne({ where: { id } })
             item.code = code
             item.brand = brand
             item.name = name
@@ -68,7 +66,8 @@ class ItemController {
             item.bend = bend
             item.rigidity = rigidity
             if (count) item.count = count
-            if (restore) item.restore = restore
+            else item.count = 1
+            if (renew) item.renew = renew
             if (req.files && 'img' in req.files) {
                 const { img } = req.files
                 let fileName = uuid.v4() + ".jpg"
@@ -83,6 +82,7 @@ class ItemController {
                 })
                 item.img = fileName
             }
+            console.log(item)
             await item.save()
             return res.json(item)
         } catch (e) {
@@ -281,7 +281,8 @@ class ItemController {
     async delete(req, res, next) {
         const { id } = req.query
         const item = await Item.findOne({ where: { id } })
-        const images = await Image.findAll({ where: { item_code: item.code } })
+        const images = await Image.findAll({ where: { item_code: Number(id) } })
+        console.log(id, images)
         try {
             if (item.img) {
                 const filePath = path.resolve(__dirname, '..', 'static', item.img)
