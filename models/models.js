@@ -14,6 +14,7 @@ const Item = sequelize.define('item', {
     type: {type: DataTypes.STRING, allowNull: false},
     count: {type: DataTypes.INTEGER, allowNull: true},
     renew: {type: DataTypes.STRING, allowNull: true},
+    height: {type: DataTypes.INTEGER, allowNull: true},
     img: {type: DataTypes.STRING, allowNull: true}
 })
 

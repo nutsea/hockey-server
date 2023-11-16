@@ -9,20 +9,19 @@ const { Op } = require('sequelize');
 class ItemController {
     async create(req, res, next) {
         try {
-            const { code, brand, name, description, price, grip, bend, rigidity, type, count, renew } = req.body
+            const { code, brand, name, description, price, grip, bend, rigidity, type, count, renew, height } = req.body
             if (req.files && 'img' in req.files) {
-                console.log('1')
                 const { img } = req.files
                 let fileName = uuid.v4() + ".jpg"
                 img.mv(path.resolve(__dirname, '..', 'static', fileName))
-                const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, renew, img: fileName })
+                const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, renew, height, img: fileName })
                 return res.json(item)
             } else {
                 if (count) {
-                    const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, renew })
+                    const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count, renew, height })
                     return res.json(item)
                 } else {
-                    const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count: 1, renew })
+                    const item = await Item.create({ code, brand, name, description, price, grip, bend, rigidity, type, count: 1, renew, height })
                     return res.json(item)
                 }
             }
@@ -55,7 +54,7 @@ class ItemController {
 
     async update(req, res, next) {
         try {
-            const { id, code, brand, name, description, price, grip, bend, rigidity, count, renew } = req.body
+            const { id, code, brand, name, description, price, grip, bend, rigidity, count, renew, height } = req.body
             const item = await Item.findOne({ where: { id } })
             item.code = code
             item.brand = brand
@@ -68,6 +67,7 @@ class ItemController {
             if (count) item.count = count
             else item.count = 1
             if (renew) item.renew = renew
+            if (height) item.height = height
             if (req.files && 'img' in req.files) {
                 const { img } = req.files
                 let fileName = uuid.v4() + ".jpg"
@@ -177,6 +177,9 @@ class ItemController {
                             [Op.gt]: 0
                         }
                     },
+                    order: [
+                        ['name', 'ASC']
+                    ],
                     limit,
                     offset
                 })
@@ -196,6 +199,9 @@ class ItemController {
                         },
                         type
                     },
+                    order: [
+                        ['name', 'ASC']
+                    ],
                     limit,
                     offset
                 })
@@ -297,8 +303,7 @@ class ItemController {
     async delete(req, res, next) {
         const { id } = req.query
         const item = await Item.findOne({ where: { id } })
-        const images = await Image.findAll({ where: { item_code: Number(id) } })
-        console.log(id, images)
+        const images = await Image.findAll({ where: { item_code: id.toString() } })
         try {
             if (item.img) {
                 const filePath = path.resolve(__dirname, '..', 'static', item.img)
@@ -351,7 +356,7 @@ class ItemController {
                     })
                 }
                 await item.destroy()
-                const images = await Image.findAll({ where: { item_code: item.code } })
+                const images = await Image.findAll({ where: { item_code: item.id.toString() } })
                 if (images) {
                     for (let i of images) {
                         const filePath = path.resolve(__dirname, '..', 'static', i.img)
