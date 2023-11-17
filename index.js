@@ -6,8 +6,15 @@ const cors = require('cors')
 const fileUpload = require('express-fileupload')
 const router = require('./routes/index')
 const path = require('path')
+const https = require('https')
+const fs = require('fs')
 
 const PORT = process.env.PORT || 5000
+
+const options = {
+    key: fs.readFileSync('/etc/letsencrypt/live/server.hockeystickstop.com/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/server.hockeystickstop.com/cert.pem')
+}
 
 const app = express()
 app.use(cors())
@@ -16,11 +23,14 @@ app.use(express.static(path.resolve(__dirname, 'static')))
 app.use(fileUpload({}))
 app.use('/api', router)
 
+const server = https.createServer(options, app)
+
 const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync()
-        app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+        // app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+        server.listen(PORT, () => console.log(`Server started on port ${PORT}`))
     } catch (e) {
         console.log(e)
     }
