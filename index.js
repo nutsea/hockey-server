@@ -11,6 +11,8 @@ const fs = require('fs')
 
 const PORT = process.env.PORT || 5000
 
+// for linux
+
 const options = {
     key: fs.readFileSync('/etc/letsencrypt/live/server.hockeystickstop.com/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/server.hockeystickstop.com/cert.pem')
@@ -23,6 +25,8 @@ app.use(express.static(path.resolve(__dirname, 'static')))
 app.use(fileUpload({}))
 app.use('/api', router)
 
+// for linux
+
 const server = https.createServer(options, app)
 
 const start = async () => {
@@ -30,6 +34,8 @@ const start = async () => {
         await sequelize.authenticate()
         await sequelize.sync()
         // app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+        // for linux
+
         server.listen(PORT, () => console.log(`Server started on port ${PORT}`))
     } catch (e) {
         console.log(e)

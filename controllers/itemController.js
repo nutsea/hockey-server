@@ -52,6 +52,61 @@ class ItemController {
         }
     }
 
+    async createXL(req, res, next) {
+        try {
+            const { rows } = req.body
+            for (let i of rows) {
+                console.log(i)
+                switch (i['Тип']) {
+                    case 'orig':
+                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Описание'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость'] && i['Количество']) {
+                            const item = await Item.findOne({where: {code: i['Артикул'].toString(), grip: i['Хват'].toString(), bend: Number(i['Загиб']).toString(), rigidity: Number(i['Жесткость'])}})
+                            if (!item) {
+                                try {
+                                    await Item.create({ code: i['Артикул'], brand: i['Фирма'], name: i['Название'], description: i['Описание'], price: i['Цена'], grip: i['Хват'], bend: i['Загиб'], rigidity: i['Жесткость'], type: 'original', count: i['Количество']})
+                                } catch (e) {
+
+                                }
+                            }
+                        }
+                        break
+
+                    case 'rep':
+                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Описание'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость'] && i['Количество']) {
+                            const item = await Item.findOne({where: {code: i['Артикул'].toString(), grip: i['Хват'].toString(), bend: Number(i['Загиб']).toString(), rigidity: Number(i['Жесткость'])}})
+                            if (!item) {
+                                try {
+                                    await Item.create({ code: i['Артикул'], brand: i['Фирма'], name: i['Название'], description: i['Описание'], price: i['Цена'], grip: i['Хват'], bend: i['Загиб'], rigidity: i['Жесткость'], type: 'replica', count: i['Количество']})
+                                } catch (e) {
+
+                                }
+                            }
+                        }
+                        break
+
+                    case 'vos':
+                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость'] && i['Ремонт'] && i['Высота']) {
+                            const item = await Item.findOne({where: {code: i['Артикул'].toString(), grip: i['Хват'].toString(), bend: Number(i['Загиб']).toString(), rigidity: Number(i['Жесткость']), renew: i['Ремонт']}})
+                            if (!item) {
+                                try {
+                                    await Item.create({ code: i['Артикул'], brand: i['Фирма'], name: i['Название'], description: '', price: i['Цена'], grip: i['Хват'], bend: i['Загиб'], rigidity: i['Жесткость'], type: 'restored', count: 1, renew: i['Ремонт'], height: i['Высота']})
+                                } catch (e) {
+
+                                }
+                            }
+                        }
+                        break
+                
+                    default:
+                        break
+                }
+            }
+            return res.json(rows)
+        } catch (e) {
+            return next(ApiError.badRequest(e.message))
+        }
+    }
+
     async update(req, res, next) {
         try {
             const { id, code, brand, name, description, price, grip, bend, rigidity, count, renew, height } = req.body

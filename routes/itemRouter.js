@@ -4,6 +4,7 @@ const itemController = require('../controllers/itemController')
 
 router.post('/', itemController.create)
 router.post('/createall', itemController.createAll)
+router.post('/createxl', itemController.createXL)
 router.post('/update', itemController.update)
 router.post('/buy', itemController.buyItems)
 router.get('/one/:id', itemController.getOne)
