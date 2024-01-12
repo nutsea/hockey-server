@@ -54,6 +54,7 @@ class ItemController {
 
     async createXL(req, res, next) {
         try {
+            console.log('попытка совершена')
             const { rows } = req.body
             for (let i of rows) {
                 console.log(i)
@@ -128,17 +129,18 @@ class ItemController {
                 const { img } = req.files
                 let fileName = uuid.v4() + ".jpg"
                 img.mv(path.resolve(__dirname, '..', 'static', fileName))
-                const filePath = path.resolve(__dirname, '..', 'static', item.img)
-                fs.unlink(filePath, (e) => {
-                    if (e) {
-                        console.log('Ошибка при удалении файла:', e)
-                    } else {
-                        console.log('Файл успешно удален')
-                    }
-                })
+                if (item.img) {
+                    const filePath = path.resolve(__dirname, '..', 'static', item.img)
+                    fs.unlink(filePath, (e) => {
+                        if (e) {
+                            console.log('Ошибка при удалении файла:', e)
+                        } else {
+                            console.log('Файл успешно удален')
+                        }
+                    })
+                }
                 item.img = fileName
             }
-            console.log(item)
             await item.save()
             return res.json(item)
         } catch (e) {
@@ -216,7 +218,46 @@ class ItemController {
             limit = limit || 18
             let offset = page * limit - limit
             if (type !== 'restored') {
-                const items = await Item.findAndCountAll({
+//            const items = await Item.findAndCountAll({
+//                where: {
+//                    brand: { [Op.in]: brands },
+//                    grip: { [Op.in]: grips },
+//                    bend: { [Op.in]: bends },
+//                    rigidity: { [Op.in]: rigidities },
+//                    price: {
+//                        [Op.and]: [
+//                            { [Op.gt]: Number(priceMin) - 1 },
+//                            { [Op.lt]: Number(priceMax) + 1 }
+//                        ]
+//                    },
+//                    type,
+//                    count: {
+//                        [Op.gt]: 0
+//                    }
+//                },
+//                order: [
+//                    ['name', 'ASC']
+//                ],
+//                limit,
+//                offset
+//            })
+                const items = await Item.findAll({
+                    attributes: [
+                        'code',
+                        [Sequelize.fn('count', Sequelize.literal('1')), 'count'],
+                        [Sequelize.fn('array_agg', Sequelize.col('brand')), 'brands'],
+                        [Sequelize.fn('array_agg', Sequelize.col('name')), 'names'],
+                        [Sequelize.fn('array_agg', Sequelize.col('description')), 'descriptions'],
+                        [Sequelize.fn('array_agg', Sequelize.col('price')), 'prices'],
+                        [Sequelize.fn('array_agg', Sequelize.col('grip')), 'grips'],
+                        [Sequelize.fn('array_agg', Sequelize.col('bend')), 'bends'],
+                        [Sequelize.fn('array_agg', Sequelize.col('rigidity')), 'rigiditys'],
+                        [Sequelize.fn('array_agg', Sequelize.col('type')), 'types'],
+                        [Sequelize.fn('array_agg', Sequelize.col('count')), 'counts'],
+                        [Sequelize.fn('array_agg', Sequelize.col('renew')), 'renews'],
+                        [Sequelize.fn('array_agg', Sequelize.col('height')), 'heights'],
+                        [Sequelize.fn('array_agg', Sequelize.col('img')), 'imgs'],
+                    ],
                     where: {
                         brand: { [Op.in]: brands },
                         grip: { [Op.in]: grips },
@@ -233,13 +274,21 @@ class ItemController {
                             [Op.gt]: 0
                         }
                     },
+                    group: ['code', 'name'],
                     order: [
                         ['name', 'ASC']
                     ],
                     limit,
                     offset
                 })
-                return res.json(items)
+                const newItems = {
+                    count: items.length,
+                    rows: items
+                }
+                for (let i of items) {
+                    console.log(i.code)
+                }
+                return res.json(newItems)
             } else {
                 const items = await Item.findAndCountAll({
                     where: {
