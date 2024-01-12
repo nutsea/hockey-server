@@ -245,6 +245,7 @@ class ItemController {
                     attributes: [
                         'code',
                         [Sequelize.fn('count', Sequelize.literal('1')), 'count'],
+                        [Sequelize.fn('array_agg', Sequelize.col('id')), 'ids'],
                         [Sequelize.fn('array_agg', Sequelize.col('brand')), 'brands'],
                         [Sequelize.fn('array_agg', Sequelize.col('name')), 'names'],
                         [Sequelize.fn('array_agg', Sequelize.col('description')), 'descriptions'],
