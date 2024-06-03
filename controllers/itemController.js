@@ -54,18 +54,24 @@ class ItemController {
 
     async createXL(req, res, next) {
         try {
-            console.log('попытка совершена')
             const { rows } = req.body
             for (let i of rows) {
-                console.log(i)
                 switch (i['Тип']) {
                     case 'orig':
-                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Описание'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость'] && i['Количество']) {
+                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Описание'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость']) {
                             try {
                                 const item = await Item.findOne({ where: { code: i['Артикул'].toString(), grip: i['Хват'].toString(), bend: Number(i['Загиб']), rigidity: Number(i['Жесткость']) } })
                                 console.log(item)
-                                if (!item) {
+                                if (!item && i['Количество'] !== 0) {
                                     await Item.create({ code: i['Артикул'], brand: i['Фирма'], name: i['Название'], description: i['Описание'], price: i['Цена'], grip: i['Хват'], bend: i['Загиб'], rigidity: i['Жесткость'], type: 'original', count: i['Количество'] })
+                                } else {
+                                    if (i['Количество'] !== 0) {
+                                        item.count = i['Количество']
+                                        item.price = i['Цена']
+                                        await item.save()
+                                    } else {
+                                        await item.destroy()
+                                    }
                                 }
                             } catch (e) {
 
@@ -74,11 +80,19 @@ class ItemController {
                         break
 
                     case 'rep':
-                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Описание'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость'] && i['Количество']) {
+                        if (i['Артикул'] && i['Фирма'] && i['Название'] && i['Описание'] && i['Цена'] && i['Хват'] && i['Загиб'] && i['Жесткость']) {
                             try {
                                 const item = await Item.findOne({ where: { code: i['Артикул'].toString(), grip: i['Хват'].toString(), bend: Number(i['Загиб']), rigidity: Number(i['Жесткость']) } })
-                                if (!item) {
+                                if (!item && i['Количество'] !== 0) {
                                     await Item.create({ code: i['Артикул'], brand: i['Фирма'], name: i['Название'], description: i['Описание'], price: i['Цена'], grip: i['Хват'], bend: i['Загиб'], rigidity: i['Жесткость'], type: 'replica', count: i['Количество'] })
+                                } else {
+                                    if (i['Количество'] !== 0) {
+                                        item.count = i['Количество']
+                                        item.price = i['Цена']
+                                        await item.save()
+                                    } else {
+                                        await item.destroy()
+                                    }
                                 }
                             } catch (e) {
 
@@ -92,6 +106,9 @@ class ItemController {
                                 const item = await Item.findOne({ where: { code: i['Артикул'].toString(), grip: i['Хват'].toString(), bend: Number(i['Загиб']), rigidity: Number(i['Жесткость']), renew: i['Ремонт'].toString() } })
                                 if (!item) {
                                     await Item.create({ code: i['Артикул'], brand: i['Фирма'], name: i['Название'], description: '', price: i['Цена'], grip: i['Хват'], bend: i['Загиб'], rigidity: i['Жесткость'], type: 'restored', count: 1, renew: i['Ремонт'], height: i['Высота'] })
+                                } else {
+                                    item.price = i['Цена']
+                                    await item.save()
                                 }
                             } catch (e) {
 
@@ -218,29 +235,29 @@ class ItemController {
             limit = limit || 18
             let offset = page * limit - limit
             if (type !== 'restored') {
-//            const items = await Item.findAndCountAll({
-//                where: {
-//                    brand: { [Op.in]: brands },
-//                    grip: { [Op.in]: grips },
-//                    bend: { [Op.in]: bends },
-//                    rigidity: { [Op.in]: rigidities },
-//                    price: {
-//                        [Op.and]: [
-//                            { [Op.gt]: Number(priceMin) - 1 },
-//                            { [Op.lt]: Number(priceMax) + 1 }
-//                        ]
-//                    },
-//                    type,
-//                    count: {
-//                        [Op.gt]: 0
-//                    }
-//                },
-//                order: [
-//                    ['name', 'ASC']
-//                ],
-//                limit,
-//                offset
-//            })
+                //            const items = await Item.findAndCountAll({
+                //                where: {
+                //                    brand: { [Op.in]: brands },
+                //                    grip: { [Op.in]: grips },
+                //                    bend: { [Op.in]: bends },
+                //                    rigidity: { [Op.in]: rigidities },
+                //                    price: {
+                //                        [Op.and]: [
+                //                            { [Op.gt]: Number(priceMin) - 1 },
+                //                            { [Op.lt]: Number(priceMax) + 1 }
+                //                        ]
+                //                    },
+                //                    type,
+                //                    count: {
+                //                        [Op.gt]: 0
+                //                    }
+                //                },
+                //                order: [
+                //                    ['name', 'ASC']
+                //                ],
+                //                limit,
+                //                offset
+                //            })
                 const items = await Item.findAll({
                     attributes: [
                         'code',
